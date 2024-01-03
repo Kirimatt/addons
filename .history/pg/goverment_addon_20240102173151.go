@@ -8,7 +8,7 @@ import (
 )
 
 func (pg *postgres) InsertGovermentAddon(ctx context.Context, url string, status string, text string) error {
-	query := `insert into goverment_addons (url, status, value) values (@url, @status, @text) on conflict do nothing`
+	query := `insert into goverment_addons (url, value) values (@url, @status, @text) on conflict do nothing`
 	args := pgx.NamedArgs{
 		"url":    url,
 		"status": status,

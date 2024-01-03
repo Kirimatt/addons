@@ -18,7 +18,6 @@ func main() {
 	if databaseUrl == "" {
 		databaseUrl = "postgres://user:password@localhost:5437/postgres"
 	}
-
 	err := schedule.ScheduleDownloadingDocs(
 		searchUrl,
 		databaseUrl,

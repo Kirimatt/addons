@@ -19,7 +19,7 @@ func GetDataFromUrl(url string) (text *string, err error) {
 	defer initResp.Body.Close()
 
 	finalURL := strings.Split(initResp.Request.URL.String(), ";")
-	fmt.Printf("Redirected to url: %s \n", finalURL[0])
+	fmt.Printf("Redirected to url: %s", finalURL[0])
 
 	resp, err := http.Get(finalURL[0])
 	if err != nil {

@@ -19,7 +19,7 @@ func GetDataFromUrl(url string) (text *string, err error) {
 	defer initResp.Body.Close()
 
 	finalURL := strings.Split(initResp.Request.URL.String(), ";")
-	fmt.Printf("Redirected to url: %s \n", finalURL[0])
+	fmt.Println(finalURL[0])
 
 	resp, err := http.Get(finalURL[0])
 	if err != nil {
@@ -68,7 +68,7 @@ func GetUrlsFromSearch(searchUrl string, placeholderUrl string) (urls *map[strin
 
 	var result map[string]string = make(map[string]string)
 	for _, match := range matches {
-		result[fmt.Sprintf(placeholderUrl, match[1])] = match[2]
+		result[match[1]] = match[2]
 	}
 
 	return &result, nil

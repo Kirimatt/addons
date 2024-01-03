@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/kirimatt/schedule"
 )
@@ -27,6 +26,4 @@ func main() {
 	if err != nil {
 		fmt.Println("An error occured when scheduling task: %w", err)
 	}
-
-	time.Sleep(40 * time.Second)
 }

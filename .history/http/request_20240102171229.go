@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.sajari.com/docconv"
+	"github.com/golang-collections/collections/set"
 )
 
 func GetDataFromUrl(url string) (text *string, err error) {
@@ -19,7 +20,7 @@ func GetDataFromUrl(url string) (text *string, err error) {
 	defer initResp.Body.Close()
 
 	finalURL := strings.Split(initResp.Request.URL.String(), ";")
-	fmt.Printf("Redirected to url: %s \n", finalURL[0])
+	fmt.Println(finalURL[0])
 
 	resp, err := http.Get(finalURL[0])
 	if err != nil {
@@ -51,7 +52,7 @@ func GetDataFromUrl(url string) (text *string, err error) {
 	return &res.Body, nil
 }
 
-func GetUrlsFromSearch(searchUrl string, placeholderUrl string) (urls *map[string]string, err error) {
+func GetUrlsFromSearch(searchUrl string) (urls *set.Set, err error) {
 	resp, err := http.Get(searchUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to make GET request: %w", err)
@@ -66,10 +67,16 @@ func GetUrlsFromSearch(searchUrl string, placeholderUrl string) (urls *map[strin
 	regex := regexp.MustCompile(`<a href="/rus/docs/([^"]+)">[\s\S]*?<span class="status ([^"]+)">([^<]+)</span>`)
 	matches := regex.FindAllStringSubmatch(string(html), -1)
 
-	var result map[string]string = make(map[string]string)
+	set := *set.New()
+	var result []string
+	var resultStatus []string
 	for _, match := range matches {
-		result[fmt.Sprintf(placeholderUrl, match[1])] = match[2]
+		set.Insert(match[1])
+		result = append(result, match[1])
+		fmt.Println(match[1])
+		resultStatus = append(resultStatus, match[2])
+		fmt.Println(match[2])
 	}
 
-	return &result, nil
+	return &set, nil
 }
