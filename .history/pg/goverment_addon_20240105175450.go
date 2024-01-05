@@ -88,7 +88,7 @@ func (pg *Postgres) GetAddonsToProcess() (addons []GovermentAddon, err error) {
 		return nil, fmt.Errorf("Error by getting rows: %w \n", err)
 	}
 
-	fmt.Printf("Found for processing: %d \n", len(results))
+	fmt.Printf("Found: %+v \n", results)
 
 	return results, nil
 }

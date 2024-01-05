@@ -61,9 +61,9 @@ func (pg *Postgres) GetExistingGovermentAddons(ctx context.Context, url string) 
 	return &result, nil
 }
 
-func (pg *Postgres) GetAddonsToProcess() (addons []GovermentAddon, err error) {
+func (pg *Postgres) GetAddonsToProcess() (addons []*GovermentAddon, err error) {
 	fmt.Printf("Searching addons for processing \n")
-	query := `select id, url, status, value from goverment_addons where is_processed is false order by created_at, order_id`
+	query := `select id, url, status, value from goverment_addons where is_processed order by created_at, order_id`
 
 	var results []GovermentAddon
 	rows, err := pg.db.Query(context.Background(), query)
@@ -88,7 +88,10 @@ func (pg *Postgres) GetAddonsToProcess() (addons []GovermentAddon, err error) {
 		return nil, fmt.Errorf("Error by getting rows: %w \n", err)
 	}
 
-	fmt.Printf("Found for processing: %d \n", len(results))
+	if err != nil {
+		return nil, fmt.Errorf("Error by getting rows: %s %w \n", url, err)
+	}
+	fmt.Printf("Found: %+v \n", results)
 
-	return results, nil
+	return &results, nil
 }

@@ -1,0 +1,56 @@
+package pg
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/jackc/pgx/v5"
+)
+
+type govermentAddon struct {
+	url    string
+	status string
+}
+
+func (pg *postgres) InsertGovermentAddon(ctx context.Context, url string, status string, text string) error {
+	query := `insert into goverment_addons (url, status, value) values (@url, @status, @text) on conflict do nothing`
+	args := pgx.NamedArgs{
+		"url":    url,
+		"status": status,
+		"text":   text,
+	}
+	_, err := pg.db.Exec(ctx, query, args)
+	if err != nil {
+		return fmt.Errorf("unable to insert row: %w", err)
+	}
+
+	return nil
+}
+
+func (pg *postgres) GetExistingGovermentAddons(ctx context.Context, urls []string, hash string) (addons []govermentAddon, err error) {
+	query := `select url, status from goverment_addons where url = any (@urls)`
+	args := pgx.NamedArgs{
+		"urls": urls,
+	}
+
+	rows, err := pg.db.Query(ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("unable to insert row: %w", err)
+	}
+	defer rows.Close()
+
+	var rowSlice []govermentAddon
+	for rows.Next() {
+		var r govermentAddon
+		err := rows.Scan(&r.url, &r.status)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to scan row: %w", err)
+		}
+		rowSlice = append(rowSlice, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error while interacting with rows: %w", err)
+	}
+
+	return rowSlice, nil
+}

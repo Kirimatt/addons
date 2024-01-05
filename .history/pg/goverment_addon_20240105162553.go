@@ -10,7 +10,6 @@ import (
 )
 
 type GovermentAddon struct {
-	Id        int64
 	Url       string
 	Status    string
 	Text      string
@@ -20,17 +19,15 @@ type GovermentAddon struct {
 
 var (
 	AddonDoesNotExist = errors.New("no rows in result set")
-	NoAddonsToProcess = errors.New("no rows for processing")
 )
 
 func (pg *Postgres) InsertGovermentAddon(ctx context.Context, govermentAddon *GovermentAddon) error {
 	query := `insert into goverment_addons (url, status, value, order_id, created_at) values (@url, @status, @text, @order_id, @created_at) on conflict do nothing`
 	args := pgx.NamedArgs{
-		"url":        govermentAddon.Url,
-		"status":     govermentAddon.Status,
-		"text":       govermentAddon.Text,
-		"order_id":   govermentAddon.OrderId,
-		"created_at": govermentAddon.CreatedAt,
+		"url":      govermentAddon.Url,
+		"status":   govermentAddon.Status,
+		"text":     govermentAddon.Text,
+		"order_id": govermentAddon.OrderId,
 	}
 	_, err := pg.db.Exec(ctx, query, args)
 	if err != nil {
@@ -59,36 +56,4 @@ func (pg *Postgres) GetExistingGovermentAddons(ctx context.Context, url string) 
 	fmt.Printf("Found: %+v \n", result)
 
 	return &result, nil
-}
-
-func (pg *Postgres) GetAddonsToProcess() (addons []GovermentAddon, err error) {
-	fmt.Printf("Searching addons for processing \n")
-	query := `select id, url, status, value from goverment_addons where is_processed is false order by created_at, order_id`
-
-	var results []GovermentAddon
-	rows, err := pg.db.Query(context.Background(), query)
-	if err == pgx.ErrNoRows {
-		fmt.Printf("Not found for processing \n")
-		return nil, NoAddonsToProcess
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Error by getting rows for processing: %w \n", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var row GovermentAddon
-		err := rows.Scan(&row.Id, &row.Url, &row.Status, &row.Text)
-		if err != nil {
-			return nil, fmt.Errorf("Error by getting rows for processing: %w \n", err)
-		}
-		results = append(results, row)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Error by getting rows: %w \n", err)
-	}
-
-	fmt.Printf("Found for processing: %d \n", len(results))
-
-	return results, nil
 }

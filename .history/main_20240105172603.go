@@ -1,19 +1,17 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/kirimatt/pg"
 	"github.com/kirimatt/schedule"
 )
 
 var (
 	searchUrl      = os.Getenv("SEARCH_URL")
 	databaseUrl    = os.Getenv("DATABASE_URL")
-	placeholderUrl = os.Getenv("PLACEHOLDER_URL")
+	placeholderUrl = os.Getenv("SEARCH_URL")
 )
 
 func main() {
@@ -27,13 +25,12 @@ func main() {
 		os.Setenv("PLACEHOLDER_URL", "https://adilet.zan.kz/rus/docs/%s/download/docx")
 	}
 
-	err := schedule.ScheduleDownloadingAddons()
+	err := schedule.ScheduleDownloadingAddons(
+		placeholderUrl,
+	)
 	if err != nil {
 		fmt.Println("An error occured when scheduling task: %w", err)
 	}
-
-	pg, err := pg.NewPG(context.Background(), os.Getenv("DATABASE_URL"))
-	pg.GetAddonsToProcess()
 
 	time.Sleep(40 * time.Second)
 }

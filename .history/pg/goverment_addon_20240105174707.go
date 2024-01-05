@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type GovermentAddon struct {
-	Id        int64
 	Url       string
 	Status    string
 	Text      string
@@ -20,7 +20,6 @@ type GovermentAddon struct {
 
 var (
 	AddonDoesNotExist = errors.New("no rows in result set")
-	NoAddonsToProcess = errors.New("no rows for processing")
 )
 
 func (pg *Postgres) InsertGovermentAddon(ctx context.Context, govermentAddon *GovermentAddon) error {
@@ -61,34 +60,35 @@ func (pg *Postgres) GetExistingGovermentAddons(ctx context.Context, url string) 
 	return &result, nil
 }
 
-func (pg *Postgres) GetAddonsToProcess() (addons []GovermentAddon, err error) {
+func (pg *Postgres) GetAddonsToProcess() (addons []*GovermentAddon, err error) {
 	fmt.Printf("Searching addons for processing \n")
-	query := `select id, url, status, value from goverment_addons where is_processed is false order by created_at, order_id`
+	query := `select url, status, value from goverment_addons where is_processed order by created_at, order_id`
 
-	var results []GovermentAddon
+	var result []GovermentAddon
 	rows, err := pg.db.Query(context.Background(), query)
 	if err == pgx.ErrNoRows {
-		fmt.Printf("Not found for processing \n")
-		return nil, NoAddonsToProcess
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Error by getting rows for processing: %w \n", err)
+		fmt.Printf("Not found by url: %s \n", url)
+		return nil, AddonDoesNotExist
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var row GovermentAddon
-		err := rows.Scan(&row.Id, &row.Url, &row.Status, &row.Text)
+		err := rows.Scan(&row.Url, &row.Status, &row.Text)
 		if err != nil {
 			return nil, fmt.Errorf("Error by getting rows for processing: %w \n", err)
 		}
-		results = append(results, row)
+		rowSlice = append(rowSlice, row)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Error by getting rows: %w \n", err)
+		log.Fatal(err)
 	}
 
-	fmt.Printf("Found for processing: %d \n", len(results))
+	fmt.Println(rowSlice)
+	if err != nil {
+		return nil, fmt.Errorf("Error by getting rows: %s %w \n", url, err)
+	}
+	fmt.Printf("Found: %+v \n", result)
 
-	return results, nil
+	return &result, nil
 }
